@@ -1,5 +1,6 @@
 package cn.chenny.redis.lock.example;
 
+import cn.chenny.redis.lock.JedisDistributedNormalLock;
 import cn.chenny.redis.lock.JedisPoolUtil;
 import cn.chenny.redis.lock.JedisDistributedTransactionLock;
 import org.junit.Test;
@@ -20,16 +21,14 @@ public class JedisDemo {
             Transaction tran = JedisDistributedTransactionLock.start(key, true, 10, 0);
             // 获取成功
             if (tran != null) {
-
                 System.out.println("开始操作");
                 tran.set("message", "helloworld");
-
                 // 提交事务
                 System.out.println("提交");
 
                 List<Object> result = JedisDistributedTransactionLock.commit(key);
                 System.out.println(result);
-            }else{
+            } else {
                 System.out.println("获取锁失败");
             }
         } catch (Exception e) {
@@ -40,6 +39,31 @@ public class JedisDemo {
             JedisDistributedTransactionLock.rollback(key);
         } finally {
             JedisPoolUtil.release(jedis);
+        }
+
+    }
+
+    @Test
+    public void test1() {
+        Jedis jedis = null;
+        String key = null;
+        try {
+            // 设置分布式锁的key
+            key = "lock.item.2";
+            // 开始事务
+            jedis = JedisDistributedNormalLock.lock(key, true, 10, 0);
+            // 获取成功
+            if (jedis != null) {
+                jedis.set("message", "helloworld");
+                String message = jedis.get("message");
+                System.out.println(message);
+            } else {
+                System.out.println("获取锁失败");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            JedisDistributedNormalLock.realeaseLock(key);
         }
 
     }
