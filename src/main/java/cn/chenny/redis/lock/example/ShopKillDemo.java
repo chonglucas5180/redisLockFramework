@@ -1,8 +1,10 @@
-package cn.chenny.redis.lock;
+package cn.chenny.redis.lock.example;
 
 import java.util.concurrent.CountDownLatch;
 
-import redis.clients.jedis.Jedis;
+import cn.chenny.redis.lock.JedisPoolUtil;
+import cn.chenny.redis.lock.JedisDistributedTransactionLock;
+import  redis.clients.jedis.Jedis;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
@@ -39,7 +41,7 @@ public class ShopKillDemo {
 			e.printStackTrace();
 		}
 		
-		Jedis jedis = JedisPooUtill.get();
+		Jedis jedis = JedisPoolUtil.get();
 		String shop1 = jedis.get(ShopKillThread.shop1);
 		String shop2 = jedis.get(ShopKillThread.shop2);
 		System.out.println(shop1+"  "+shop2);
@@ -64,24 +66,23 @@ public class ShopKillDemo {
 			Jedis jedis=null;
 			try {
 				startLatch.await();
-				 jedis = JedisPooUtill.get();
 
 				// 开启事务
-				Transaction tran = JedisTransactionUtil.startTransaction(jedis, lockKey, 500, 30);
+				Transaction tran = JedisDistributedTransactionLock.start(lockKey,false, 500L, 30);
 				Response<String> num = tran.get(killShop);
 				tran.decr(killShop);
 				// 提交事务
-				JedisTransactionUtil.commitTransaction(lockKey);
+				JedisDistributedTransactionLock.commit(lockKey);
 				System.out.println(Thread.currentThread().toString()+" 秒杀【"+killShop+"】 第"+(500-Integer.parseInt(num.get())+1)+"件");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				// 回滚事务
-				JedisTransactionUtil.rollbackTransaction(jedis, lockKey);
+				JedisDistributedTransactionLock.rollback( lockKey);
 			} finally {
-				// 释放连接
-				JedisPooUtill.release(jedis);
-				
+				if(JedisDistributedTransactionLock.getCurJedis()!=null){
+					JedisPoolUtil.release(JedisDistributedTransactionLock.getCurJedis());
+				}
 				endLatch.countDown();
 			}
 

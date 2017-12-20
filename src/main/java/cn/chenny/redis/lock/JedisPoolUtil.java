@@ -4,7 +4,10 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPool;
 
-public class JedisPooUtill {
+/**
+ * jedis连接池工具类
+ */
+public class JedisPoolUtil {
 	private static JedisPool jedisPool;
 	static {
 		// 构建连接池配置信息
