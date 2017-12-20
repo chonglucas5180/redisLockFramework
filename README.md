@@ -2,10 +2,10 @@
 这是一个基于java的redis的分布式锁框架，通过锁来实现同步，并整合了事务操作。
 能够实现在多线程下 对redis中的共享资源进行同步访问
 
-##redis指令说明
+## redis指令说明
 主要使用了redis中的watch,multi,exec,expire等指令
 
-##功能说明
+## 功能说明
 根据Lock接口API来设计功能，具体看JedisTransactionLock.java
 
 |功能|
